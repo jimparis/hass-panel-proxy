@@ -1,0 +1,8 @@
+{
+    "domain": "panel_proxy",
+    "name": "Proxy Panel",
+    "documentation": "https://github.com/jimparis/hass-panel-proxy",
+    "dependencies": [ "frontend", "http" ],
+    "codeowners": [ "@jimparis" ],
+    "version": "1.0.0"
+}
