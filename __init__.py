@@ -22,7 +22,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import UNDEFINED
-from homeassistant.components.http import KEY_AUTHENTICATED, KEY_HASS_REFRESH_TOKEN_ID, KEY_HASS_USER
+from homeassistant.components.http import KEY_AUTHENTICATED, KEY_HASS_REFRESH_TOKEN_ID, KEY_HASS_USER, StaticPathConfig
 from homeassistant.components.http.auth import DATA_SIGN_SECRET
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,9 +90,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Initialize proxy panel"""
 
     # Register a URL so we can fetch our panel_proxy.js module
-    hass.http.register_static_path(f"/panel_proxy_files",
-                                   __path__[0] + "/static",
-                                   cache_headers=False)
+    await hass.http.async_register_static_paths([
+        StaticPathConfig("/panel_proxy_files",
+                         __path__[0] + "/static",
+                         cache_headers=False)
+    ])
 
     # Loop through each configured panel entry
     for path, info in config[DOMAIN].items():
@@ -189,7 +191,7 @@ class PanelProxy(HomeAssistantView):
     put = _handle
     delete = _handle
     patch = _handle
-    options = _handle
+#    options = _handle
 
     async def _handle_websocket(self, request, requested_url):
         """Handle websocket request"""
@@ -339,7 +341,7 @@ class PanelProxy(HomeAssistantView):
             _LOGGER.error(f"path mismatch {request.path} vs {claims['path']}")
             return False
 
-        refresh_token = await self.hass.auth.async_get_refresh_token(claims["iss"])
+        refresh_token = self.hass.auth.async_get_refresh_token(claims["iss"])
 
         if refresh_token is None:
             return False
